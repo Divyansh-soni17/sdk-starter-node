@@ -7,6 +7,7 @@ const nameGenerator = require('../name_generator');
 const AccessToken = Twilio.jwt.AccessToken;
 const ChatGrant = AccessToken.ChatGrant;
 const SyncGrant = AccessToken.SyncGrant;
+const  VideoGrant  = AccessToken.VideoGrant;
 
 /**
  * Generate an Access Token for an application user - it generates a random
@@ -53,4 +54,30 @@ function tokenGenerator(identity = 0) {
   };
 }
 
-module.exports = tokenGenerator;
+function videotokenGenerator(identity,room) {
+  // Create an access token which we will sign and return to the client
+  const token = new AccessToken(
+    config.TWILIO_ACCOUNT_SID,
+    config.TWILIO_API_KEY,
+    config.TWILIO_API_SECRET
+  );
+
+  // Assign the provided identity or generate a new one
+  token.identity = identity || nameGenerator();
+  let videoGrant;
+  if (typeof room !== 'undefined') {
+    videoGrant = new VideoGrant({ room });
+  } else {
+    videoGrant = new VideoGrant();
+  }
+  token.addGrant(videoGrant);
+  
+
+  // Serialize the token to a JWT string and include it in a JSON response
+  return {
+    identity: token.identity,
+    token: token.toJwt()
+  };
+}
+
+module.exports = {tokenGenerator,videotokenGenerator};
